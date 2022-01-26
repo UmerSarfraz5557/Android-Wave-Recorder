@@ -51,7 +51,7 @@ class WaveRecorder(private var filePath: String) {
      * Register a callback to be invoked in every recorded chunk of audio data
      * to get max amplitude of that chunk.
      */
-    var onAmplitudeListener: ((Int) -> Unit)? = null
+    var onAmplitudeListener: ((Double) -> Unit)? = null
 
     /**
      * Register a callback to be invoked in recording state changes
@@ -152,12 +152,14 @@ class WaveRecorder(private var filePath: String) {
         noiseSuppressor?.release()
     }
 
-    private fun calculateAmplitudeMax(data: ByteArray): Int {
-        val shortData = ShortArray(data.size / 2)
-        ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
-            .get(shortData)
-
-        return shortData.max()?.toInt() ?: 0
+    private fun calculateAmplitudeMax(data: ByteArray): Double {
+        var max = 0
+        for (s in data) {
+            if (Math.abs(s.toInt()) > max) {
+                max = Math.abs(s.toInt())
+            }
+        }
+        return max.toDouble()
     }
     
     /** Changes @property filePath to @param newFilePath
